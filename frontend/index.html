@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DevBoard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    /* ── Palette ──────────────────────────────────────────
+       Anchor: dark brown nav (#4a3728).
+       Surfaces: warm parchment/cream.
+       Brown = primary action colour throughout.
+       Green = accent only (done, wiki, low priority).
+    ──────────────────────────────────────────────────── */
+    :root {
+      --bg:          #f5f0e8;
+      --bg-deep:     #ece4d6;
+      --card:        #fdfaf4;
+      --border:      #d4c4a4;
+      --border-soft: #e4d8c0;
+      --nav:         #4a3728;
+      --nav-text:    #f5ede0;
+      --nav-muted:   #b89878;
+      --nav-active:  #d4a84a;
+      --action:      #7c4e2c;
+      --action-hov:  #5e3a1e;
+      --text:        #2c1f12;
+      --muted:       #7a6248;
+      --green:       #3d6645;
+      --green-light: #d8ead8;
+      --amber:       #a06018;
+      --amber-light: #faecd0;
+      --rose:        #904040;
+      --rose-light:  #f8e0d8;
+    }
+
+    body { font-family: 'Georgia', serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    input, textarea, select { font-family: 'Georgia', serif; }
+
+    .badge-todo        { background:#ede4d4; color:#5c3e20; }
+    .badge-in_progress { background:var(--amber-light); color:var(--amber); font-weight:600; }
+    .badge-done        { background:var(--green-light); color:var(--green); font-weight:600; }
+    .badge-low         { background:var(--green-light); color:var(--green); }
+    .badge-medium      { background:var(--amber-light); color:var(--amber); }
+    .badge-high        { background:var(--rose-light);  color:var(--rose); }
+    .badge-assignee    { background:#ede4d4; color:#5c3e20; }
+    .badge-label       { background:#e8dcc8; color:#6a4a28; }
+    .badge-wiki        { background:var(--green-light); color:var(--green); }
+    .badge-overdue     { background:var(--rose-light); color:var(--rose); font-weight:600; }
+    .badge-due-today   { background:var(--amber-light); color:var(--amber); font-weight:600; }
+    .badge-due         { background:#ede4d4; color:#5c3e20; }
+
+    .nav-btn { transition: color 0.15s; }
+    .nav-btn.active { color: var(--nav-active) !important; border-bottom: 2px solid var(--nav-active); }
+
+    .filter-tab { color: var(--muted); transition: all 0.15s; border-radius: .5rem; }
+    .filter-tab.active { background: var(--card); color: var(--action); font-weight: 600;
+                         box-shadow: 0 1px 4px rgba(74,55,40,0.10); }
+
+    .card { background: var(--card); border: 1px solid var(--border-soft); border-radius: 1rem; }
+    .card-hover { transition: box-shadow 0.15s, transform 0.12s; }
+    .card-hover:hover { box-shadow: 0 4px 18px rgba(74,55,40,0.12); transform: translateY(-1px); }
+
+    .btn-action {
+      background: var(--action); color: #fdf6ee;
+      border-radius: 999px; font-weight: 600; font-size: .8125rem;
+      padding: .35rem 1.1rem; border: none; cursor: pointer; transition: background 0.15s;
+    }
+    .btn-action:hover { background: var(--action-hov); }
+
+    .btn-ghost {
+      background: transparent; color: var(--muted);
+      border: 1px solid var(--border); border-radius: 999px;
+      font-size: .8125rem; padding: .35rem 1.1rem; cursor: pointer; transition: background 0.15s;
+    }
+    .btn-ghost:hover { background: var(--bg-deep); }
+
+    .btn-inline {
+      background: none; border: none; cursor: pointer; padding: .2rem .5rem;
+      font-size: .75rem; border-radius: .4rem; color: var(--muted);
+      transition: background 0.12s, color 0.12s;
+    }
+    .btn-inline:hover { background: var(--bg-deep); color: var(--action); }
+
+    .field {
+      width: 100%; border: 1px solid var(--border); border-radius: .5rem;
+      padding: .45rem .75rem; font-size: .875rem; background: var(--bg);
+      color: var(--text); outline: none;
+    }
+    .field:focus { border-color: var(--action); }
+
+    .search-field {
+      border: 1px solid var(--border); border-radius: .75rem;
+      padding: .45rem .9rem; font-size: .875rem; background: var(--card);
+      color: var(--text); outline: none; width: 100%;
+    }
+    .search-field:focus { border-color: var(--action); }
+
+    /* Markdown */
+    .md-body h1,.md-body h2,.md-body h3 { font-weight:700; margin:.75rem 0 .35rem; color:var(--action-hov); }
+    .md-body h1 { font-size:1.2rem; } .md-body h2 { font-size:1.05rem; } .md-body h3 { font-size:.95rem; }
+    .md-body p  { margin:.4rem 0; line-height:1.65; font-size:.85rem; }
+    .md-body ul,.md-body ol { margin:.4rem 0 .4rem 1.2rem; font-size:.85rem; }
+    .md-body li { margin:.15rem 0; }
+    .md-body code { background:#ede4d4; color:#5c3e20; border-radius:.25rem; padding:.1rem .3rem; font-size:.8rem; }
+    .md-body pre  { background:#ede4d4; color:#5c3e20; border-radius:.5rem; padding:.75rem; overflow-x:auto; margin:.5rem 0; }
+    .md-body pre code { background:none; padding:0; }
+    .md-body blockquote { border-left:3px solid var(--border); padding-left:.75rem; color:var(--muted); margin:.4rem 0; font-style:italic; }
+    .md-body a  { color:var(--action); text-decoration:underline; }
+    .md-body hr { border:none; border-top:1px solid var(--border); margin:.75rem 0; }
+    .md-body strong { font-weight:700; } .md-body em { font-style:italic; }
+  </style>
+</head>
+<body>
+
+  <!-- ── Login screen ───────────────────────────────────── -->
+  <div id="login-screen" class="hidden min-h-screen flex items-center justify-center px-4">
+    <div class="card p-8 w-full max-w-sm shadow-md space-y-4">
+      <p class="font-bold text-xl text-center" style="color:var(--action-hov);">&#9670; DevBoard</p>
+      <input id="login-user" class="field" type="text"     placeholder="Username" autofocus />
+      <input id="login-pass" class="field" type="password" placeholder="Password" />
+      <p id="login-err" class="text-xs" style="color:var(--rose); min-height:1rem;"></p>
+      <button class="btn-action w-full" onclick="tryLogin()">Sign in</button>
+    </div>
+  </div>
+
+  <!-- ── App ────────────────────────────────────────────── -->
+  <div id="app" class="hidden">
+
+  <nav style="background:var(--nav);" class="px-6 py-3 flex items-center gap-8 shadow-md">
+    <span class="font-bold text-lg tracking-wide" style="color:var(--nav-text);">&#9670; DevBoard</span>
+    <button id="nav-tasks" onclick="showSection('tasks')" class="nav-btn active text-sm font-medium pb-0.5" style="color:var(--nav-text);">Tasks</button>
+    <button id="nav-wiki"  onclick="showSection('wiki')"  class="nav-btn text-sm font-medium pb-0.5"        style="color:var(--nav-muted);">Wiki</button>
+    <button onclick="logout()" class="ml-auto text-xs" style="color:var(--nav-muted);" onmouseover="this.style.color='var(--nav-text)'" onmouseout="this.style.color='var(--nav-muted)'">Sign out</button>
+  </nav>
+
+  <main class="max-w-3xl mx-auto px-4 py-8">
+
+    <!-- ── Tasks ──────────────────────────────────────── -->
+    <section id="section-tasks">
+      <div class="flex items-center justify-between mb-4">
+        <h1 class="text-2xl font-bold" style="color:var(--action-hov);">Tasks</h1>
+        <button class="btn-action" onclick="openTaskForm()">+ New Task</button>
+      </div>
+
+      <!-- Search -->
+      <div class="mb-3">
+        <input id="search-tasks" class="search-field" type="text" placeholder="&#128269; Search tasks…" />
+      </div>
+
+      <!-- Filter tabs -->
+      <div class="flex gap-1 mb-5 p-1 rounded-xl" style="background:var(--bg-deep); display:inline-flex;">
+        <button onclick="setTaskFilter('all')"         id="filter-all"         class="filter-tab active text-xs px-3 py-1.5">All</button>
+        <button onclick="setTaskFilter('todo')"        id="filter-todo"        class="filter-tab text-xs px-3 py-1.5">Todo</button>
+        <button onclick="setTaskFilter('in_progress')" id="filter-in_progress" class="filter-tab text-xs px-3 py-1.5">In Progress</button>
+        <button onclick="setTaskFilter('done')"        id="filter-done"        class="filter-tab text-xs px-3 py-1.5">Done</button>
+        <button onclick="setTaskFilter('overdue')"     id="filter-overdue"     class="filter-tab text-xs px-3 py-1.5">&#9888; Overdue</button>
+      </div>
+
+      <!-- Create form -->
+      <div id="task-form" class="hidden card p-5 mb-5 space-y-3 shadow-sm">
+        <p class="text-sm font-semibold" style="color:var(--action-hov);">New Task</p>
+        <input  id="task-title"    class="field" type="text" placeholder="Title" />
+        <textarea id="task-desc"   class="field resize-none" rows="2" placeholder="Description (optional)"></textarea>
+        <input  id="task-labels"   class="field" type="text" placeholder="Labels (comma-separated)" />
+        <div class="flex flex-wrap gap-2">
+          <select id="task-status"    class="field" style="width:auto;">
+            <option value="todo">Todo</option>
+            <option value="in_progress">In Progress</option>
+            <option value="done">Done</option>
+          </select>
+          <select id="task-priority"  class="field" style="width:auto;">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+          </select>
+          <input  id="task-assignee"  class="field flex-1 min-w-28" type="text"
+            placeholder="Assignee" list="assignees-list" />
+          <input  id="task-due-at"    class="field" type="datetime-local" style="width:auto;" />
+          <select id="task-wiki-page" class="field" style="width:auto;">
+            <option value="">No wiki page</option>
+          </select>
+        </div>
+        <div class="flex gap-2 pt-1">
+          <button class="btn-action" onclick="submitTask()">Save</button>
+          <button class="btn-ghost"  onclick="closeTaskForm()">Cancel</button>
+        </div>
+      </div>
+
+      <datalist id="assignees-list"></datalist>
+      <div id="tasks-list" class="space-y-3"></div>
+    </section>
+
+    <!-- ── Wiki ───────────────────────────────────────── -->
+    <section id="section-wiki" class="hidden">
+      <div class="flex items-center justify-between mb-4">
+        <h1 class="text-2xl font-bold" style="color:var(--action-hov);">Wiki</h1>
+        <button class="btn-action" onclick="openPageForm()">+ New Page</button>
+      </div>
+
+      <!-- Search -->
+      <div class="mb-5">
+        <input id="search-pages" class="search-field" type="text" placeholder="&#128269; Search pages…" />
+      </div>
+
+      <!-- Create form -->
+      <div id="page-form" class="hidden card p-5 mb-5 space-y-3 shadow-sm">
+        <p class="text-sm font-semibold" style="color:var(--action-hov);">New Page</p>
+        <input    id="page-title"   class="field" type="text" placeholder="Title" />
+        <textarea id="page-content" class="field font-mono resize-none" rows="8" placeholder="Content (markdown supported)"></textarea>
+        <div class="flex gap-2 pt-1">
+          <button class="btn-action" onclick="submitPage()">Save</button>
+          <button class="btn-ghost"  onclick="closePageForm()">Cancel</button>
+        </div>
+      </div>
+
+      <div id="pages-list" class="space-y-3"></div>
+    </section>
+
+  </main>
+
+  </div> <!-- /#app -->
+
+  <!-- Production: replace with your Fly.io service URLs -->
+  <script>
+    // window.DEVBOARD_TASKS_URL = "https://devboard-tasks.fly.dev";
+    // window.DEVBOARD_WIKI_URL  = "https://devboard-wiki.fly.dev";
+  </script>
+  <script src="app.js"></script>
+</body>
+</html>

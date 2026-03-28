@@ -1,0 +1,19 @@
+app = "devboard-tasks"
+primary_region = "iad"
+
+[build]
+
+[http_service]
+  internal_port = 8001
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+
+[[vm]]
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1
+
+[mounts]
+  source = "tasks_data"
+  destination = "/data"

@@ -1,0 +1,39 @@
+services:
+  tasks:
+    build: ./services/tasks
+    ports:
+      - "8001:8001"
+    volumes:
+      - tasks-data:/data
+    environment:
+      - WIKI_SERVICE_URL=http://wiki:8002
+      - API_KEY=devboard-dev-key
+    restart: unless-stopped
+
+  wiki:
+    build: ./services/wiki
+    ports:
+      - "8002:8002"
+    volumes:
+      - wiki-data:/data
+    environment:
+      - TASKS_SERVICE_URL=http://tasks:8001
+      - API_KEY=devboard-dev-key
+    restart: unless-stopped
+    depends_on:
+      - tasks
+
+  frontend:
+    image: nginx:alpine
+    ports:
+      - "3010:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+    depends_on:
+      - tasks
+      - wiki
+    restart: unless-stopped
+
+volumes:
+  tasks-data:
+  wiki-data:
