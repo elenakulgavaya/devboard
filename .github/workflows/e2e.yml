@@ -35,6 +35,8 @@ jobs:
 
       - name: Run E2E tests
         env:
+          DEVBOARD_URL: https://qaexplained.com/devboard/
+          DEVBOARD_USER: admin
           DEVBOARD_PASS: ${{ secrets.DEVBOARD_PASS }}
         run: |
           pytest tests/e2e/ \
