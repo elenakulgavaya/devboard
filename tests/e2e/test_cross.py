@@ -73,6 +73,8 @@ def test_wiki_page_dropdown_includes_existing_pages(logged_in_page: Page):
 
         go_to_tasks(p)
         p.locator("button", has_text="+ New Task").click()
+        # dropdown is populated by an async fetch — wait for the option to appear
+        expect(p.locator("#task-wiki-page")).to_contain_text(page_title)
         options = p.locator("#task-wiki-page option")
         option_texts = [options.nth(i).inner_text() for i in range(options.count())]
         assert page_title in option_texts
