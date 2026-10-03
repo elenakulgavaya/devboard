@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: devboard-tasks
+    runtime: docker
+    dockerfilePath: ./services/tasks/Dockerfile
+    dockerContext: ./services/tasks
+    plan: free
+    envVars:
+      - key: API_KEY
+        generateValue: true
+      - key: WIKI_SERVICE_URL
+        value: https://devboard-wiki.onrender.com
+      - key: ADMIN_USER
+        value: admin
+      - key: ADMIN_PASSWORD
+        generateValue: true
+
+  - type: web
+    name: devboard-wiki
+    runtime: docker
+    dockerfilePath: ./services/wiki/Dockerfile
+    dockerContext: ./services/wiki
+    plan: free
+    envVars:
+      - key: API_KEY
+        fromService:
+          type: web
+          name: devboard-tasks
+          envVarKey: API_KEY
+      - key: TASKS_SERVICE_URL
+        value: https://devboard-tasks.onrender.com
