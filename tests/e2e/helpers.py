@@ -26,7 +26,7 @@ def create_task(page: Page, title: str, **kwargs) -> None:
 
 
 def delete_task(page: Page, title: str) -> None:
-    card = page.locator("#tasks-list .card", has_text=title).first()
+    card = page.locator("#tasks-list .card", has_text=title).first
     card.locator("button[title='Delete']").click()
     expect(page.locator("#tasks-list")).not_to_contain_text(title)
 
@@ -41,6 +41,6 @@ def create_wiki_page(page: Page, title: str, content: str = "") -> None:
 
 
 def delete_wiki_page(page: Page, title: str) -> None:
-    card = page.locator("#pages-list .card", has_text=title).first()
+    card = page.locator("#pages-list .card", has_text=title).first
     card.locator("button[title='Delete']").click()
     expect(page.locator("#pages-list")).not_to_contain_text(title)
