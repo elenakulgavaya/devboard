@@ -20,6 +20,7 @@ def create_task(page: Page, title: str, **kwargs) -> None:
     if assignee := kwargs.get("assignee"):
         page.locator("#task-assignee").fill(assignee)
     if wiki_page := kwargs.get("wiki_page"):
+        expect(page.locator("#task-wiki-page")).to_contain_text(wiki_page)
         page.locator("#task-wiki-page").select_option(label=wiki_page)
     page.locator("#task-form button", has_text="Save").click()
     expect(page.locator("#tasks-list")).to_contain_text(title)

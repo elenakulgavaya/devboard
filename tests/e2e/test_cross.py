@@ -21,19 +21,27 @@ def test_task_shows_wiki_badge_when_linked(logged_in_page: Page):
     page_title = uid("Linked Page ")
     task_title = uid("Linked Task ")
     try:
-        # Create wiki page first so it appears in the task form's dropdown
         go_to_wiki(p)
         create_wiki_page(p, page_title)
 
-        # Create task linked to that wiki page
         go_to_tasks(p)
         create_task(p, task_title, wiki_page=page_title)
+
+        # Round-trip through wiki forces loadPages() to populate window._wikiPages,
+        # so loadTasks() renders the badge with the page title instead of "#id".
+        go_to_wiki(p)
+        go_to_tasks(p)
 
         card = p.locator("#tasks-list .card", has_text=task_title)
         expect(card.locator(".badge-wiki")).to_be_visible()
         expect(card.locator(".badge-wiki")).to_contain_text(page_title)
     finally:
-        delete_task(p, task_title)
+        # Nested try/except so cleanup failures don't mask the real test error.
+        try:
+            go_to_tasks(p)
+            delete_task(p, task_title)
+        except Exception:
+            pass
         go_to_wiki(p)
         delete_wiki_page(p, page_title)
 
