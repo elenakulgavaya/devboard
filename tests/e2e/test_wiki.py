@@ -1,6 +1,5 @@
-import pytest
 from playwright.sync_api import Page, expect
-from helpers import uid, create_wiki_page, delete_wiki_page
+from tests.helpers import uid, create_wiki_page, delete_wiki_page
 
 
 def go_to_wiki(page: Page) -> None:

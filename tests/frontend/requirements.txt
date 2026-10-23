@@ -1,0 +1,6 @@
+pytest>=8.0
+pytest-playwright>=0.5
+pytest-timeout>=2.0
+pytest-html>=4.0
+surety==0.0.26
+surety-api==0.0.4
