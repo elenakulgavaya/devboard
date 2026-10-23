@@ -38,6 +38,7 @@ jobs:
           DEVBOARD_URL: https://qaexplained.com/devboard/
           DEVBOARD_USER: admin
           DEVBOARD_PASS: ${{ secrets.DEVBOARD_PASS }}
+          PYTHONPATH: ${{ github.workspace }}
         run: |
           pytest tests/e2e/ \
             --browser chromium \
