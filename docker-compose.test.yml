@@ -11,6 +11,7 @@ services:
     volumes:
       - ./frontend:/usr/share/nginx/html:ro
       - ./frontend/nginx.test.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./frontend/config.test.js:/usr/share/nginx/html/config.js:ro
     depends_on:
       mockserver:
         condition: service_started
