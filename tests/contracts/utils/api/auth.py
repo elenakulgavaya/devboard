@@ -12,7 +12,7 @@ from surety.sdk import dates
 from surety.sdk.fakeable import fake
 
 
-SERVICE = 'auth/'
+SERVICE = 'api/auth/'
 BASE_URL = Cfg.App.api_url
 
 

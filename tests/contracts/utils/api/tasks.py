@@ -1,0 +1,170 @@
+from surety import Array, DateTime, Enum, Dictionary, Int, String
+from surety.api import ApiContract, HttpMethod
+from surety.config import Cfg
+
+
+SERVICE = 'api/'
+BASE_URL = Cfg.App.api_url
+
+
+
+class Status(Enum):
+    Todo = 'todo'
+    InProgress = 'in_progress'
+    Done = 'done'
+
+
+class Priority(Enum):
+    Low = 'low'
+    Medium = 'medium'
+    High = 'high'
+
+
+class Task(Dictionary):
+    Id = Int(name='id')
+    Title = String(name='title')
+    Description = String(name='description', required=False)
+    Labels = String(name='labels', required=False)
+    Status = Status(name='status')
+    Priority = Priority(name='priority')
+    Assignee = String(name='assignee')
+    DueAt = DateTime(name='due_at', required=False)
+    WikiPageId = Int(name='wiki_page_id', required=False)
+
+
+class GetTasksResponse(Dictionary):
+    Items = Array(Task, name='items')
+
+
+class SubmitTaskRequest(Dictionary):
+    Title = String(name='title')
+    Description = String(name='description', required=False)
+    Labels = String(name='labels', required=False)
+    Status = Status(name='status')
+    Priority = Priority(name='priority')
+    Assignee = String(name='assignee', required=False)
+    DueAt = DateTime(name='due_at', required=False)
+    WikiPageId = Int(name='wiki_page_id', required=False)
+
+
+class SubmitTaskResponse(Task):
+    pass
+
+
+class TaskPathParams(Dictionary):
+    Id = Int(name='task_id')
+
+
+class GetTaskResponse(Task):
+    pass
+
+
+class UpdateTaskRequest(Dictionary):
+    Title = String(name='title', required=False)
+    Description = String(name='description', required=False)
+    Labels = String(name='labels', required=False)
+    Status = Status(name='status', required=False)
+    Priority = Priority(name='priority', required=False)
+    Assignee = String(name='assignee', required=False)
+    DueAt = DateTime(name='due_at', required=False)
+    WikiPageId = Int(name='wiki_page_id', required=False)
+
+
+class UpdateTaskResponse(Task):
+    pass
+
+
+class Comment(Dictionary):
+    Author = String(name='author')
+    Content = String(name='content')
+    Created = DateTime(name='created')
+
+
+class GetTaskCommentsResponse(Dictionary):
+    Items = Array(Comment, name='items')
+
+
+class CreateTaskCommentRequest(Dictionary):
+    Author = String(name='author')
+    Content = String(name='content')
+
+
+class CreateTaskCommentResponse(Comment):
+    pass
+
+
+class HistoryEntry(Dictionary):
+    Field = String(name='field')
+    OldValue = String(name='old_value', required=False)
+    NewValue = String(name='new_value', required=False)
+    ChangedAt = DateTime(name='changed_at')
+
+
+class GetTaskHistoryResponse(Dictionary):
+    Items = Array(HistoryEntry, name='items')
+
+
+class GetTasksAssigneesResponse(Dictionary):
+    Assignees = Array(String, name='assignees')
+
+
+class GetTasks(ApiContract):
+    method = HttpMethod.GET
+    url = 'tasks'
+    resp_body = GetTasksResponse
+
+
+class SubmitTask(ApiContract):
+    method = HttpMethod.POST
+    url = 'tasks'
+    req_body = SubmitTaskRequest
+    resp_body = SubmitTaskResponse
+
+
+class GetTask(ApiContract):
+    method = HttpMethod.GET
+    url = 'tasks/{task_id}'
+    path_params = TaskPathParams
+    resp_body = GetTaskResponse
+
+
+class UpdateTask(ApiContract):
+    method = HttpMethod.PATCH
+    url = 'tasks/{task_id}'
+    path_params = TaskPathParams
+    req_body = UpdateTaskRequest
+    resp_body = UpdateTaskResponse
+
+
+class DeleteTask(ApiContract):
+    method = HttpMethod.DELETE
+    url = 'tasks/{task_id}'
+    path_params = TaskPathParams
+
+
+class GetTaskComments(ApiContract):
+    method = HttpMethod.GET
+    url = 'talks/{task_id}/comments'
+    path_params = TaskPathParams
+    resp_body = GetTaskCommentsResponse
+
+
+class CreateTaskComment(ApiContract):
+    method = HttpMethod.POST
+    url = 'tasks/{task_id}/comments'
+    path_params = TaskPathParams
+    req_body = CreateTaskCommentRequest
+    resp_body = CreateTaskCommentResponse
+
+
+class GetTaskHistory(ApiContract):
+    method = HttpMethod.GET
+    url = 'tasks/{task_id}/history'
+    path_params = TaskPathParams
+    resp_body = GetTaskHistoryResponse
+
+
+class GetTasksAssignees(ApiContract):
+    method = HttpMethod.GET
+    url = 'tasks/assignees'
+    resp_body = GetTasksAssigneesResponse

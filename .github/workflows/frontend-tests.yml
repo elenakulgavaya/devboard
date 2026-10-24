@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    paths: ["frontend/**"]
+    paths: ["frontend/**", "tests/contracts/**"]
   workflow_dispatch:
 
 jobs:
@@ -28,38 +28,18 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: tests/frontend/requirements.txt
+          cache-dependency-path: tests/contracts/requirements/ui.txt
 
       - name: Install dependencies
-        run: pip install -r tests/frontend/requirements.txt
-
-      - name: Cache Playwright browsers
-        id: playwright-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('tests/frontend/requirements.txt') }}
-
-      - name: Install Playwright browsers
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: playwright install chromium --with-deps
-
-      - name: Install Playwright system deps
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: playwright install-deps chromium
+        run: pip install -r tests/contracts/requirements/ui.txt
 
       - name: Run frontend tests
         working-directory: tests
         env:
           PYTHONPATH: ${{ github.workspace }}
         run: |
-          pytest frontend/ \
-            --browser chromium \
-            --screenshot only-on-failure \
-            --video retain-on-failure \
-            --tracing retain-on-failure \
-            --output frontend-playwright-output \
-            --html frontend-report.html \
+          pytest contracts/frontend/ \
+            --html contracts-report.html \
             --self-contained-html \
             -v
 
@@ -72,13 +52,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: frontend-test-report
-          path: tests/frontend-report.html
+          path: tests/contracts-report.html
           retention-days: 14
 
-      - name: Upload Playwright artifacts
+      - name: Upload screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: frontend-playwright-output
-          path: tests/frontend-playwright-output/
+          name: frontend-screenshots
+          path: tests/contracts/screenshots/
           retention-days: 14
