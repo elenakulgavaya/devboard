@@ -34,12 +34,12 @@ jobs:
         run: pip install -r tests/contracts/requirements/ui.txt
 
       - name: Run frontend tests
-        working-directory: tests
+        working-directory: tests/contracts
         env:
           PYTHONPATH: ${{ github.workspace }}
         run: |
-          pytest contracts/frontend/ \
-            --html contracts-report.html \
+          pytest frontend/ \
+            --html report.html \
             --self-contained-html \
             -v
 
@@ -52,7 +52,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: frontend-test-report
-          path: tests/contracts-report.html
+          path: tests/contracts/report.html
           retention-days: 14
 
       - name: Upload screenshots
