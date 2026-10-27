@@ -19,7 +19,7 @@ class GetPagesResponse(Dictionary):
 
 class CreateNewPageRequest(Dictionary):
     Title = String(name='title')
-    Content = String(name='content', required=False)
+    Content = String(name='content', allow_none=True)
 
 
 class CreateNewPageResponse(Page):

@@ -13,6 +13,8 @@ from tests.contracts.utils.ui.pages.tasks import TasksPage
 @pytest.fixture(scope='module', autouse=True)
 def open_login_page():
     LoginPage.open()
+    LocalStorage.remove_item(local_db.Keys.ApiKey)
+    LoginPage.open()
 
 
 def test_login_screen_on_page_load():

@@ -3,7 +3,7 @@ import random
 from datetime import datetime, timedelta
 
 from surety.diff import compare
-from surety.ui import Button, Container, Label, Page, TextInput, Select
+from surety.ui import Button, Container, Label, Page, TextInput, Select, Link
 from surety.ui.browser import Elements
 
 from tests.contracts.utils.api import tasks
@@ -13,6 +13,7 @@ from tests.contracts.utils.ui.pages.base import BasePage
 def task_to_ui_dict(task):
     text_labels = [task.Title.value]
     badges = [task.Priority.value, f'👤 {task.Assignee.value}']
+    wiki = None
 
     if task.Description.value:
         text_labels.append(task.Description.value.replace('\n', ' '))
@@ -23,10 +24,14 @@ def task_to_ui_dict(task):
     if task.DueAt.value:
         badges.append(task.DueAt.to_format('Due %b %-d, %Y'))
 
+    if task.WikiPageId.value:
+        wiki = f'📄 #{task.WikiPageId.value}'
+
     return {
         'labels': text_labels,
         'status': task.Status.value.replace('_', ' ').title(),
-        'badges': badges
+        'badges': badges,
+        'wiki': wiki,
     }
 
 
@@ -59,6 +64,7 @@ class TaskCard(Container):
     Labels = Elements(css='p', element_class=Label)
     StatusButton = Button(css='button[onclick^=cycleStatus]')
     Badges = Elements(css='span.rounded-full', element_class=Label)
+    WikiBadge = Link(css='a.badge-wiki')
     CommentsButton = Button(css='button[onclick*=comments]')
     HistoryButton = Button(css='button[onclick*=history]')
     EditButton = Button(css='button[onclick*=startEditTask]')
@@ -82,10 +88,16 @@ class TaskCard(Container):
 
 
     def to_dict(self):
+        wiki = None
+
+        if self.WikiBadge.is_present():
+            wiki = self.WikiBadge.text
+
         return {
             'labels': self.Labels.get_labels(),
             'status': self.StatusButton.text,
             'badges': self.Badges.get_labels(),
+            'wiki': wiki,
         }
 
 

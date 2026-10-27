@@ -59,6 +59,10 @@ class GetTaskResponse(Task):
     pass
 
 
+class UpdateTaskStatusRequest(Dictionary):
+    Status = Status(name='status')
+
+
 class UpdateTaskRequest(Dictionary):
     Title = String(name='title', required=False)
     Description = String(name='description', required=False)
@@ -67,7 +71,7 @@ class UpdateTaskRequest(Dictionary):
     Priority = Priority(name='priority', required=False)
     Assignee = String(name='assignee', required=False)
     DueAt = DateTime(name='due_at', required=False)
-    WikiPageId = Int(name='wiki_page_id', required=False)
+    WikiPageId = Int(name='wiki_page_id', allow_none=True)
 
 
 class UpdateTaskResponse(Task):
