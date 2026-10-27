@@ -1,7 +1,7 @@
 from surety import Array, DateTime, Enum, Dictionary, Int, String
 from surety.api import ApiContract, HttpMethod
 from surety.config import Cfg
-
+from surety.sdk.fakeable import fake
 
 SERVICE = 'api/'
 BASE_URL = Cfg.App.api_url
@@ -38,13 +38,13 @@ class GetTasksResponse(Dictionary):
 
 class SubmitTaskRequest(Dictionary):
     Title = String(name='title')
-    Description = String(name='description', required=False)
-    Labels = String(name='labels', required=False)
+    Description = String(name='description', allow_none=True)
+    Labels = String(name='labels', allow_none=True)
     Status = Status(name='status')
     Priority = Priority(name='priority')
-    Assignee = String(name='assignee', required=False)
-    DueAt = DateTime(name='due_at', required=False)
-    WikiPageId = Int(name='wiki_page_id', required=False)
+    Assignee = String(name='assignee', allow_none=True)
+    DueAt = DateTime(name='due_at', allow_none=True)
+    WikiPageId = Int(name='wiki_page_id', allow_none=True)
 
 
 class SubmitTaskResponse(Task):
@@ -105,7 +105,7 @@ class GetTaskHistoryResponse(Dictionary):
 
 
 class GetTasksAssigneesResponse(Dictionary):
-    Assignees = Array(String, name='assignees')
+    Assignees = Array(String(fake_as=fake.name), name='assignees')
 
 
 class GetTasks(ApiContract):
@@ -144,7 +144,7 @@ class DeleteTask(ApiContract):
 
 class GetTaskComments(ApiContract):
     method = HttpMethod.GET
-    url = 'talks/{task_id}/comments'
+    url = 'tasks/{task_id}/comments'
     path_params = TaskPathParams
     resp_body = GetTaskCommentsResponse
 

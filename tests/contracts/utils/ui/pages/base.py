@@ -8,4 +8,7 @@ class BasePage(Page):
 
     LoginScreen = Container(css='#login-screen')
     AppScreen = Container(css='#app')
+
+    TasksButton = Button(css='#nav-tasks')
+    WikiButton = Button(css='#nav-wiki')
     LogoutButton = Button(css='button[onclick^=logout]')

@@ -2,7 +2,7 @@ import pytest
 from selenium.webdriver import Keys
 
 from surety.sdk.fakeable import fake
-from surety.ui import Browser, LocalStorage
+from surety.ui import LocalStorage
 
 from tests.contracts.utils.ui import local_db
 from tests.contracts.utils.ui.pages.login import LoginPage
@@ -97,7 +97,7 @@ def test_auth_request_on_password_enter(username, password,
     auth.Login.verify_called(expected=auth.LoginRequest.with_values({
         auth.LoginRequest.Username.name: username,
         auth.LoginRequest.Password.name: password,
-    }))
+    }), timeout=2)
 
 
 def test_password_cleared_on_enter_failure(enter_in_password_field):
@@ -118,7 +118,7 @@ def test_auth_request_on_username_enter(username, password,
     auth.Login.verify_called(expected=auth.LoginRequest.with_values({
         auth.LoginRequest.Username.name: username,
         auth.LoginRequest.Password.name: password,
-    }))
+    }), timeout=2)
 
 
 def test_password_cleared_on_username_enter_failure(enter_in_username_field):

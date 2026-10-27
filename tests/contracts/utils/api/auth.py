@@ -26,7 +26,7 @@ class LoginResponse(Dictionary):
 
 
 class ErrorResponse(Dictionary):
-    Details = Enum(name='details')
+    Details = String(name='details')
 
 
 class Login(ApiContract):
