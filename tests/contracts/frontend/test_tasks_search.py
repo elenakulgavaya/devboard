@@ -58,6 +58,6 @@ def test_tasks_searched(search_by_title, matching_task):
 
 def test_search_request(search_by_title):
     tasks.GetTasks.verify_called(params={
-        'page_size': ['100'],
-        'q': [search_by_title]
+        tasks.GetTasksParams.PageSize.name: ['100'],
+        tasks.GetTasksParams.Query.name: [search_by_title]
     })

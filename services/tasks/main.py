@@ -207,6 +207,15 @@ def list_assignees(db: Session = Depends(get_db)):
     return schemas.AssigneesResponse(assignees=[r[0] for r in rows])
 
 
+@router.post("/reset")
+def reset(db: Session = Depends(get_db)):
+    db.query(models.TaskHistory).delete()
+    db.query(models.Comment).delete()
+    db.query(models.Task).delete()
+    db.commit()
+    return {"status": "ok"}
+
+
 app.include_router(router)
 
 

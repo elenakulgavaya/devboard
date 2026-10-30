@@ -68,8 +68,8 @@ def test_tasks_filtered(filter_todo, todo_task):
 
 def test_filter_todo_request(filter_todo):
     tasks.GetTasks.verify_called(params={
-        'page_size': ['100'],
-        'status': [tasks.Status.Todo]
+        tasks.GetTasksParams.PageSize.name: ['100'],
+        tasks.GetTasksParams.Status.name: [tasks.Status.Todo]
     })
 
 
@@ -87,8 +87,8 @@ def test_tasks_filtered_done(filter_done, done_task):
 
 def test_filter_done_request(filter_done):
     tasks.GetTasks.verify_called(params={
-        'page_size': ['100'],
-        'status': [tasks.Status.Done]
+        tasks.GetTasksParams.PageSize.name: ['100'],
+        tasks.GetTasksParams.Status.name: [tasks.Status.Done]
     })
 
 
@@ -106,6 +106,6 @@ def test_tasks_filtered_overdue(filter_overdue, overdue_task):
 
 def test_filter_overdue_request(filter_overdue):
     tasks.GetTasks.verify_called(params={
-        'page_size': ['100'],
-        'overdue': ['true']
+        tasks.GetTasksParams.PageSize.name: ['100'],
+        tasks.GetTasksParams.Overdue.name: ['true']
     })

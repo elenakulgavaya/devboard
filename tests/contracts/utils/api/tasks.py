@@ -1,11 +1,10 @@
-from surety import Array, DateTime, Enum, Dictionary, Int, String
+from surety import Array, DateTime, Enum, Dictionary, Int, String, Bool
 from surety.api import ApiContract, HttpMethod
 from surety.config import Cfg
 from surety.sdk.fakeable import fake
 
-SERVICE = 'api/'
-BASE_URL = Cfg.App.api_url
-
+SERVICE = 'api'
+BASE_URL = Cfg.App.tasks_url
 
 
 class Status(Enum):
@@ -23,17 +22,23 @@ class Priority(Enum):
 class Task(Dictionary):
     Id = Int(name='id')
     Title = String(name='title')
-    Description = String(name='description', required=False)
-    Labels = String(name='labels', required=False)
+    Description = String(name='description', allow_none=True)
+    Labels = String(name='labels', allow_none=True)
     Status = Status(name='status')
     Priority = Priority(name='priority')
-    Assignee = String(name='assignee')
-    DueAt = DateTime(name='due_at', required=False)
-    WikiPageId = Int(name='wiki_page_id', required=False)
+    Assignee = String(name='assignee', allow_none=True)
+    DueAt = DateTime(name='due_at', allow_none=True)
+    DueAt = DateTime(name='due_at', allow_none=True)
+    WikiPageId = Int(name='wiki_page_id', allow_none=True)
+    CreatedAt = DateTime(name='created_at')
+    UpdatedAt = DateTime(name='updated_at')
 
 
 class GetTasksResponse(Dictionary):
     Items = Array(Task, name='items')
+    Total = Int(name='total')
+    Page = Int(name='page')
+    PageSize = Int(name='page_size')
 
 
 class SubmitTaskRequest(Dictionary):
@@ -112,29 +117,37 @@ class GetTasksAssigneesResponse(Dictionary):
     Assignees = Array(String(fake_as=fake.name), name='assignees')
 
 
+class GetTasksParams(Dictionary):
+    PageSize = Int(name='page_size', default=100)
+    Query = String(name='q', required=False)
+    Status = Status(name='status', required=False)
+    Overdue = Bool(name='overdue', required=False)
+
+
 class GetTasks(ApiContract):
     method = HttpMethod.GET
-    url = 'tasks'
+    url = '/tasks'
+    params = GetTasksParams
     resp_body = GetTasksResponse
 
 
 class SubmitTask(ApiContract):
     method = HttpMethod.POST
-    url = 'tasks'
+    url = '/tasks'
     req_body = SubmitTaskRequest
     resp_body = SubmitTaskResponse
 
 
 class GetTask(ApiContract):
     method = HttpMethod.GET
-    url = 'tasks/{task_id}'
+    url = '/tasks/{task_id}'
     path_params = TaskPathParams
     resp_body = GetTaskResponse
 
 
 class UpdateTask(ApiContract):
     method = HttpMethod.PATCH
-    url = 'tasks/{task_id}'
+    url = '/tasks/{task_id}'
     path_params = TaskPathParams
     req_body = UpdateTaskRequest
     resp_body = UpdateTaskResponse
@@ -142,20 +155,20 @@ class UpdateTask(ApiContract):
 
 class DeleteTask(ApiContract):
     method = HttpMethod.DELETE
-    url = 'tasks/{task_id}'
+    url = '/tasks/{task_id}'
     path_params = TaskPathParams
 
 
 class GetTaskComments(ApiContract):
     method = HttpMethod.GET
-    url = 'tasks/{task_id}/comments'
+    url = '/tasks/{task_id}/comments'
     path_params = TaskPathParams
     resp_body = GetTaskCommentsResponse
 
 
 class CreateTaskComment(ApiContract):
     method = HttpMethod.POST
-    url = 'tasks/{task_id}/comments'
+    url = '/tasks/{task_id}/comments'
     path_params = TaskPathParams
     req_body = CreateTaskCommentRequest
     resp_body = CreateTaskCommentResponse
@@ -163,12 +176,16 @@ class CreateTaskComment(ApiContract):
 
 class GetTaskHistory(ApiContract):
     method = HttpMethod.GET
-    url = 'tasks/{task_id}/history'
+    url = '/tasks/{task_id}/history'
     path_params = TaskPathParams
     resp_body = GetTaskHistoryResponse
 
 
 class GetTasksAssignees(ApiContract):
     method = HttpMethod.GET
-    url = 'tasks/assignees'
+    url = '/tasks/assignees'
     resp_body = GetTasksAssigneesResponse
+
+class Reset(ApiContract):
+    method = HttpMethod.POST
+    url = '/reset'

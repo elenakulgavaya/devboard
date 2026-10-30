@@ -140,4 +140,12 @@ def list_task_index(db: Session = Depends(get_db)):
     return db.query(models.TaskIndex).order_by(models.TaskIndex.indexed_at.desc()).all()
 
 
+@router.post("/reset")
+def reset(db: Session = Depends(get_db)):
+    db.query(models.TaskIndex).delete()
+    db.query(models.Page).delete()
+    db.commit()
+    return {"status": "ok"}
+
+
 app.include_router(router)

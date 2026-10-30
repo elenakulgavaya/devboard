@@ -4,6 +4,7 @@ MockServer:
 App:
   url: http://localhost:3010
   api_url: http://localhost:8080
+  tasks_url: http://localhost:8001
 Browser:
   headless: True
   devtools: False
