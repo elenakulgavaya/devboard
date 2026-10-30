@@ -14,7 +14,8 @@ def reset():
 @pytest.fixture(scope='module')
 def task(reset):
     result = SubmitTask(
-        title='First simple task'
+        title='First simple task',
+        status=api.Status.Todo,
     ).request().verify_response(error_code=201)
 
     return api.Task().with_values(result.response.json())
