@@ -1,0 +1,53 @@
+name: Tasks Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths: ["services/tasks/**", "tests/contracts/tasks/**", "tests/contracts/utils/**"]
+  workflow_dispatch:
+
+jobs:
+  tasks-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start tasks service
+        run: docker compose up tasks -d --build
+
+      - name: Wait for tasks service
+        run: timeout 60 bash -c 'until curl -sf http://localhost:8001/health; do sleep 2; done'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: tests/contracts/requirements/tasks.txt
+
+      - name: Install dependencies
+        run: pip install -r tests/contracts/requirements/tasks.txt
+
+      - name: Run tasks tests
+        working-directory: tests/contracts
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          pytest tasks/ \
+            --html report.html \
+            --self-contained-html \
+            -v
+
+      - name: Stop services
+        if: always()
+        run: docker compose down
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tasks-test-report
+          path: tests/contracts/report.html
+          retention-days: 14
