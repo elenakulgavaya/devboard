@@ -12,8 +12,11 @@ from tests.contracts.utils.ui.pages.base import BasePage
 
 def task_to_ui_dict(task):
     text_labels = [task.Title.value]
-    badges = [task.Priority.value, f'👤 {task.Assignee.value}']
+    badges = [task.Priority.value]
     wiki = None
+
+    if task.Assignee.value:
+        badges.append(f'👤 {task.Assignee.value}')
 
     if task.Description.value:
         text_labels.append(task.Description.value.replace('\n', ' '))

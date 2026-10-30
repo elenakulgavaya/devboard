@@ -28,7 +28,6 @@ class Task(Dictionary):
     Priority = Priority(name='priority')
     Assignee = String(name='assignee', allow_none=True)
     DueAt = DateTime(name='due_at', allow_none=True)
-    DueAt = DateTime(name='due_at', allow_none=True)
     WikiPageId = Int(name='wiki_page_id', allow_none=True)
     CreatedAt = DateTime(name='created_at')
     UpdatedAt = DateTime(name='updated_at')
