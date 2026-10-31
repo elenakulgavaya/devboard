@@ -102,6 +102,8 @@ def list_tasks(
 
 @router.post("/tasks", response_model=schemas.TaskRead, status_code=201)
 def create_task(payload: schemas.TaskCreate, db: Session = Depends(get_db)):
+    if payload.wiki_page_id is not None:
+        _validate_wiki_page(payload.wiki_page_id)
     task = models.Task(**payload.model_dump())
     db.add(task)
     db.commit()
@@ -124,6 +126,8 @@ def update_task(task_id: int, payload: schemas.TaskUpdate, db: Session = Depends
         raise HTTPException(status_code=404, detail="Task not found")
 
     update_data = payload.model_dump(exclude_unset=True)
+    if "wiki_page_id" in update_data and update_data["wiki_page_id"] is not None:
+        _validate_wiki_page(update_data["wiki_page_id"])
     description_changed = False
 
     for field, new_value in update_data.items():
@@ -220,6 +224,22 @@ app.include_router(router)
 
 
 # ── Helpers ───────────────────────────────────────────────
+
+def _validate_wiki_page(page_id: int) -> None:
+    try:
+        with httpx.Client(timeout=2.0) as client:
+            response = client.get(
+                f"{WIKI_SERVICE_URL}/pages/{page_id}",
+                headers={"X-API-Key": API_KEY},
+            )
+            if response.status_code == 404:
+                raise HTTPException(status_code=422, detail="Wiki page not found")
+            response.raise_for_status()
+    except HTTPException:
+        raise
+    except Exception:
+        pass
+
 
 def _notify_wiki_reindex(task_id: int, description: str | None) -> None:
     """Fire-and-forget call to wiki service. Wiki being down must not fail task updates."""

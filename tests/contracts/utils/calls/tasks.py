@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from http.client import responses
 
 from surety.api.caller import ApiCaller
 from surety.diff import is_valid_uuid, precise_dates_equal_with_delta, \
@@ -25,23 +26,29 @@ class SubmitTask(ApiCaller):
     contract = api.SubmitTask
 
     def __init__(self, is_full=False, title=None, description=None,
-                 status=None, due_date=None, priority=None):
+                 status=None, due_date=None, priority=None, page_id=None):
         self.req_body = api.SubmitTaskRequest(is_full=is_full).with_values({
             api.SubmitTaskRequest.Title.name: title,
             api.SubmitTaskRequest.Description.name: description,
             api.SubmitTaskRequest.Status.name: status,
             api.SubmitTaskRequest.Priority.name: priority,
             api.SubmitTaskRequest.DueAt.name: due_date,
+            api.SubmitTaskRequest.WikiPageId.name: page_id,
         })
         super().__init__(
             req_body=self.req_body,
             headers={'X-API-Key': 'devboard-dev-key'}
         )
 
-    def verify(self):
-        super().verify_response(
-            error_code=201,
-            resp_body=api.SubmitTaskResponse.with_values({
+    def verify(self, error_code=None):
+        if error_code:
+            resp_body = api.ErrorResponse.with_values({
+                api.ErrorResponse.Details.name: 'Wiki page not found'
+            })
+            rules = None
+        else:
+            error_code = 201
+            resp_body = api.SubmitTaskResponse.with_values({
                 api.SubmitTaskResponse.Title.name: self.req_body.Title.value,
                 api.SubmitTaskResponse.Status.name: self.req_body.Status.value,
                 api.SubmitTaskResponse.Priority.name:
@@ -56,12 +63,17 @@ class SubmitTask(ApiCaller):
                 api.SubmitTaskResponse.DueAt.name: self.req_body.DueAt.value,
                 api.SubmitTaskResponse.CreatedAt.name: datetime.now(timezone.utc),
                 api.SubmitTaskResponse.UpdatedAt.name: datetime.now(timezone.utc),
-            }),
-            rules={
+            })
+            rules = {
                 api.SubmitTaskResponse.Id.name: has_some_value,
                 api.SubmitTaskResponse.CreatedAt.name: dates_equal_with_delta,
                 api.SubmitTaskResponse.UpdatedAt.name: dates_equal_with_delta,
             }
+
+        super().verify_response(
+            error_code=error_code,
+            resp_body=resp_body,
+            rules=rules
         )
 
 class GetTasks(ApiCaller):
@@ -113,17 +125,26 @@ class UpdateTask(ApiCaller):
             headers={'X-API-Key': 'devboard-dev-key'}
         )
 
-    def verify(self, task=None, error_code=None):
-        super().verify_response(
-            error_code=error_code,
-            resp_body=task and api.GetTaskResponse.with_values(task.value).with_values(
+    def verify(self, task=None, error_code=None, error_message='Task not found'):
+        if error_code:
+            resp_body = api.ErrorResponse.with_values({
+                api.ErrorResponse.Details.name: error_message
+            })
+            rules = None
+        else:
+            resp_body = task and api.GetTaskResponse.with_values(task.value).with_values(
                 self.req_body.value and {
                     api.GetTaskResponse.UpdatedAt.name: datetime.now(timezone.utc),
                 }
-            ).with_values(self.req_body.value),
-            rules=self.req_body.value and {
+            ).with_values(self.req_body.value)
+            rules = self.req_body.value and {
                 api.GetTaskResponse.UpdatedAt.name: dates_equal_with_delta
             }
+
+        super().verify_response(
+            error_code=error_code,
+            resp_body=resp_body,
+            rules=rules
         )
 
 

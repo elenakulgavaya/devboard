@@ -1,6 +1,7 @@
 import pytest
+from surety.sdk.fakeable import fake
 
-from tests.contracts.utils.api import tasks as api
+from tests.contracts.utils.api import tasks as api, wiki
 from tests.contracts.utils.calls.tasks import UpdateTask, Reset, SubmitTask
 
 
@@ -19,10 +20,17 @@ def task(reset):
 
 @pytest.fixture(scope='module')
 def full_task(task):
+    page_id = fake.random_number()
+    wiki.GetPage.reply(
+        path_params=wiki.PagePathParams.with_values({
+            wiki.PagePathParams.Id.name: page_id
+        }),
+    )
     result = SubmitTask(
         is_full=True,
         status=api.Status.InProgress,
-        priority=api.Priority.Low
+        priority=api.Priority.Low,
+        page_id=page_id
     ).request().verify_response(error_code=201)
 
     return api.Task().with_values(result.response.json())
@@ -46,14 +54,49 @@ def test_update_task_status(task):
 
 
 def test_update_task_full(task):
+    page_id = int(fake.random_number())
+    wiki.GetPage.reply(
+        path_params=wiki.PagePathParams.with_values({
+            wiki.PagePathParams.Id.name: page_id
+        }),
+    )
     UpdateTask(
         task_id=task.Id.value,
-        body=api.UpdateTaskRequest(is_full=True)
+        body=api.UpdateTaskRequest(is_full=True).with_values({
+            api.UpdateTaskRequest.WikiPageId.name: page_id,
+        })
     ).request().verify(task=task)
 
 
 def test_update_full_task_rewrite(full_task):
+    page_id = int(fake.random_number())
+    wiki.GetPage.reply(
+        path_params=wiki.PagePathParams.with_values({
+            wiki.PagePathParams.Id.name: page_id
+        }),
+    )
     UpdateTask(
         task_id=full_task.Id.value,
-        body=api.UpdateTaskRequest(is_full=True)
+        body=api.UpdateTaskRequest(is_full=True).with_values({
+            api.UpdateTaskRequest.WikiPageId.name: page_id,
+        })
     ).request().verify(task=full_task)
+
+
+def test_update_task_get_pages_failed(full_task):
+    page_id = int(fake.random_number())
+    wiki.GetPage.reply(
+        path_params=wiki.PagePathParams.with_values({
+            wiki.PagePathParams.Id.name: page_id
+        }),
+        status=404
+    )
+    UpdateTask(
+        task_id=full_task.Id.value,
+        body=api.UpdateTaskRequest(is_full=True).with_values({
+            api.UpdateTaskRequest.WikiPageId.name: page_id,
+        })
+    ).request().verify(
+        task=full_task, error_code=422, error_message='Wiki page not found'
+    )
+

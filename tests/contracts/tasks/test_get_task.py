@@ -1,6 +1,7 @@
 import pytest
+from surety.sdk.fakeable import fake
 
-from tests.contracts.utils.api import tasks as api
+from tests.contracts.utils.api import tasks as api, wiki
 from tests.contracts.utils.calls.tasks import GetTask, Reset, SubmitTask
 
 
@@ -17,7 +18,15 @@ def task(reset):
 
 @pytest.fixture(scope='module')
 def full_task(task):
-    result = SubmitTask(is_full=True).request().verify_response(error_code=201)
+    page_id = fake.random_number()
+    wiki.GetPage.reply(
+        path_params=wiki.PagePathParams.with_values({
+            wiki.PagePathParams.Id.name: page_id
+        }),
+    )
+    result = SubmitTask(
+        is_full=True, page_id=page_id
+    ).request().verify_response(error_code=201)
 
     return api.Task().with_values(result.response.json())
 

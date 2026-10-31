@@ -5,6 +5,7 @@ App:
   url: http://localhost:3010
   api_url: http://localhost:8080
   tasks_url: http://localhost:8001
+  wiki_url: http://localhost:8002
 Browser:
   headless: True
   devtools: False
