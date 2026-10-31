@@ -1,11 +1,13 @@
 from surety import Array, DateTime, Enum, Dictionary, Int, String, Bool
 from surety.api import ApiContract, HttpMethod
 from surety.config import Cfg
+from surety.sdk import dates
 from surety.sdk.fakeable import fake
 
 SERVICE = 'api'
 BASE_URL = Cfg.App.tasks_url
 
+DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
 
 class Status(Enum):
     Todo = 'todo'
@@ -27,10 +29,10 @@ class Task(Dictionary):
     Status = Status(name='status')
     Priority = Priority(name='priority')
     Assignee = String(name='assignee', allow_none=True)
-    DueAt = DateTime(name='due_at', allow_none=True)
+    DueAt = DateTime(name='due_at', date_format=DATE_FORMAT, allow_none=True)
     WikiPageId = Int(name='wiki_page_id', allow_none=True)
-    CreatedAt = DateTime(name='created_at')
-    UpdatedAt = DateTime(name='updated_at')
+    CreatedAt = DateTime(name='created_at', date_format=DATE_FORMAT)
+    UpdatedAt = DateTime(name='updated_at', date_format=DATE_FORMAT)
 
 
 class GetTasksResponse(Dictionary):
@@ -47,7 +49,7 @@ class SubmitTaskRequest(Dictionary):
     Status = Status(name='status')
     Priority = Priority(name='priority')
     Assignee = String(name='assignee', allow_none=True)
-    DueAt = DateTime(name='due_at', allow_none=True)
+    DueAt = DateTime(name='due_at', date_format=DATE_FORMAT, allow_none=True)
     WikiPageId = Int(name='wiki_page_id', allow_none=True)
 
 
@@ -74,7 +76,7 @@ class UpdateTaskRequest(Dictionary):
     Status = Status(name='status', required=False)
     Priority = Priority(name='priority', required=False)
     Assignee = String(name='assignee', required=False)
-    DueAt = DateTime(name='due_at', required=False)
+    DueAt = DateTime(name='due_at', date_format=DATE_FORMAT, required=False)
     WikiPageId = Int(name='wiki_page_id', allow_none=True)
 
 
@@ -83,13 +85,20 @@ class UpdateTaskResponse(Task):
 
 
 class Comment(Dictionary):
+    Id = Int(name='id')
+    TaskId = Int(name='task_id')
     Author = String(name='author')
     Content = String(name='content')
-    Created = DateTime(name='created')
+    CreatedAt = DateTime(name='created_at', date_format=DATE_FORMAT)
+
+
+class ErrorResponse(Dictionary):
+    Details = String(name='detail')
 
 
 class GetTaskCommentsResponse(Dictionary):
     Items = Array(Comment, name='items')
+    Total = Int(name='total')
 
 
 class CreateTaskCommentRequest(Dictionary):
@@ -102,14 +111,17 @@ class CreateTaskCommentResponse(Comment):
 
 
 class HistoryEntry(Dictionary):
+    Id = Int(name='id')
+    TaskId = Int(name='task_id')
     Field = String(name='field')
-    OldValue = String(name='old_value', required=False)
-    NewValue = String(name='new_value', required=False)
+    OldValue = String(name='old_value', allow_none=True)
+    NewValue = String(name='new_value', allow_none=True)
     ChangedAt = DateTime(name='changed_at')
 
 
 class GetTaskHistoryResponse(Dictionary):
     Items = Array(HistoryEntry, name='items')
+    Total = Int(name='total')
 
 
 class GetTasksAssigneesResponse(Dictionary):
@@ -184,6 +196,7 @@ class GetTasksAssignees(ApiContract):
     method = HttpMethod.GET
     url = '/tasks/assignees'
     resp_body = GetTasksAssigneesResponse
+
 
 class Reset(ApiContract):
     method = HttpMethod.POST

@@ -149,7 +149,7 @@ def test_update_task_request(edit_new_title, load_task):
             tasks.UpdateTaskRequest.Status.name: load_task.Status.value,
             tasks.UpdateTaskRequest.Labels.name: load_task.Labels.value,
             tasks.UpdateTaskRequest.Assignee.name: load_task.Assignee.value,
-            tasks.UpdateTaskRequest.DueAt.name: load_task.DueAt.value,
+            tasks.UpdateTaskRequest.DueAt.name: load_task.DueAt.value + 'Z',
         }),
         rules={
             tasks.UpdateTaskRequest.DueAt.name: precise_dates_equal_with_delta,

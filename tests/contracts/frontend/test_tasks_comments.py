@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pytest
 
 from surety.sdk.fakeable import fake
@@ -111,8 +113,12 @@ def post_comment(load_task, add_author, add_content):
 
 
 def test_comment_added(post_comment):
+    new_tz = str(datetime.now().astimezone().tzinfo)
+    fmt_date = post_comment.CreatedAt.to_format(
+        f'%b %-d, %I:%M %p', new_tz=new_tz
+    )
     TasksPage.TasksList.Cards[0].Comments.CommentsList.verify_labels([
-        f'{post_comment.Author.value}\n{post_comment.Content.value}'
+        f'{post_comment.Author.value}\n{fmt_date}\n{post_comment.Content.value}'
     ])
 
 
