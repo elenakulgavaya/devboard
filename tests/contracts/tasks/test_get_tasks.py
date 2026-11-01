@@ -87,3 +87,8 @@ def test_filter_overdue(task, full_task, overdue):
         api.GetTasksParams.Overdue.name: True
     })).request().verify(tasks=[overdue])
 
+
+def test_filter_by_wiki_page(task, full_task, overdue):
+    GetTasks(params=api.GetTasksParams.with_values({
+        api.GetTasksParams.WikiPageId.name: full_task.WikiPageId.value
+    })).request().verify(tasks=[full_task])

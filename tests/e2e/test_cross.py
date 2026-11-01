@@ -114,3 +114,33 @@ def test_unlink_wiki_page_from_task(logged_in_page: Page):
         delete_task(p, task_title)
         go_to_wiki(p)
         delete_wiki_page(p, page_title)
+
+
+def test_wiki_page_lists_only_its_linked_tasks(logged_in_page: Page):
+    p = logged_in_page
+    page_title = uid("Board Page ")
+    linked = uid("Linked Task ")
+    other = uid("Other Task ")
+    try:
+        go_to_wiki(p)
+        create_wiki_page(p, page_title, content="Linked tasks demo")
+        go_to_tasks(p)
+        create_task(p, linked, wiki_page=page_title)
+        create_task(p, other)
+
+        go_to_wiki(p)
+        card = p.locator("#pages-list .card", has_text=page_title)
+        page_id = card.get_attribute("id").split("-")[-1]
+        card.locator(".card-hover").click()
+        linked_box = p.locator(f"#page-tasks-{page_id}")
+        expect(linked_box).to_contain_text(linked)       # fails on PR C
+        expect(linked_box).not_to_contain_text(other)    # fails on PR B
+    finally:
+        try:
+            go_to_tasks(p)
+            delete_task(p, linked)
+            delete_task(p, other)
+        except Exception:
+            pass
+        go_to_wiki(p)
+        delete_wiki_page(p, page_title)
