@@ -1,0 +1,12 @@
+services:
+  mockserver:
+    image: mockserver/mockserver:latest
+    ports:
+      - "8080:1080"
+
+  wiki:
+    depends_on:
+      mockserver:
+        condition: service_started
+    environment:
+      - TASKS_SERVICE_URL=http://mockserver:1080/mockserver/api

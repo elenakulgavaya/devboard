@@ -1,3 +1,5 @@
+import time
+
 import pytest
 
 from surety.sdk.fakeable import fake
@@ -41,11 +43,33 @@ def test_page_loaded(load_page):
 
 @pytest.fixture(scope='module')
 def expand_page(load_page):
+    page_tasks = [tasks.Task.with_values({
+        tasks.Task.WikiPageId.name: load_page.Id.value
+    }) for _ in range(2)]
+    wiki.GetPageTasks.reply(
+        path_params=wiki.PagePathParams.with_values({
+            wiki.PagePathParams.Id.name: load_page.Id.value
+        }),
+        body=wiki.GetPageTasksResponse.with_values({
+            wiki.GetPageTasksResponse.Tasks.name: page_tasks
+        })
+    )
     WikiPage.PagesList.Cards[0].Title.click()
+    time.sleep(0.5)
+
+    return page_tasks
 
 
 def test_page_expanded(expand_page, load_page):
-    WikiPage.PagesList.verify_pages([load_page], is_full=True)
+    WikiPage.PagesList.Cards[0].verify_page(load_page, tasks=expand_page)
+
+
+def test_page_tasks_requested(expand_page, load_page):
+    wiki.GetPageTasks.verify_called(
+        path_params=wiki.PagePathParams.with_values({
+            wiki.PagePathParams.Id.name: load_page.Id.value
+        })
+    )
 
 
 @pytest.fixture(scope='module')
@@ -54,4 +78,4 @@ def collapse_page(expand_page):
 
 
 def test_page_collapsed(collapse_page, load_page):
-    WikiPage.PagesList.verify_pages([load_page], is_full=False)
+    assert WikiPage.PagesList.Cards[0].FullPage.is_not_present()

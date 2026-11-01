@@ -1,21 +1,10 @@
+from xml.etree.ElementTree import ElementTree
+
 from surety.diff import compare
 from surety.ui import Button, Container, Label, TextInput
 from surety.ui.browser import Elements
 
 from tests.contracts.utils.ui.pages.base import BasePage
-
-
-def page_to_ui_dict(page, is_full=False):
-    content = page.Content.value.replace('\n', ' ')
-
-    if len(content) > 180:
-        content = content[:180] + '…'
-
-    return {
-        'title': f'📄 {page.Title.value}',
-        'content': '' if is_full else content,
-        'full_page': page.Content.value if is_full else '',
-    }
 
 
 class NewPageForm(Container):
@@ -29,11 +18,10 @@ class NewPageForm(Container):
 
 class PageCard(Container):
     Title = Label(css='p.font-semibold')
-    Content = Label(css='p.font-mono')
-    FullPage = Label(css='div[id*=page-full]')
+    FullPage = Label(css='div[id*=page-full]>div.md-body')
     EditButton = Button(css='button[onclick*=startEditPage]')
     DeleteButton = Button(css='button[onclick*=deletePage]')
-
+    PageTasks = Elements(css='div[id*=page-tasks]>div', element_class=Label)
 
     EditHeader = Label(css='p.font-semibold')
     TitleEdit = TextInput(css='input[id*=ep-title]')
@@ -42,18 +30,25 @@ class PageCard(Container):
     SaveButton = Button(css='button[onclick^=saveEditPage]')
     CancelButton = Button(css='button[onclick^=cancelEditPage]')
 
+    def verify_page(self, page, tasks):
+        def task_to_label(task):
+            status = task.Status.value.replace('_', ' ').title()
+            return f'{status}\n{task.Priority.value}\n{task.Title.value}'
 
-    def to_dict(self):
-        full_page_text = ''
-
-        if self.FullPage.is_present():
-            full_page_text = self.FullPage.text
-
-        return {
+        actual = {
             'title': self.Title.text,
-            'content': self.Content.text,
-            'full_page': full_page_text,
+            'full_content': self.FullPage.text if self.FullPage.is_present() else None,
+            'tasks': self.PageTasks.get_labels(),
         }
+        compare(
+            actual=actual,
+            expected={
+                'title': f'📄 {page.Title.value}',
+                'full_content': page.Content.value,
+                'tasks': [task_to_label(task) for task in tasks],
+            }
+        )
+
 
 
 class PagesList(Container):
@@ -61,13 +56,13 @@ class PagesList(Container):
 
     @property
     def pages(self):
-        return [page.to_dict() for page in self.Cards]
+        return [page.Title.text for page in self.Cards]
 
-    def verify_pages(self, pages, is_full=False):
+    def verify_pages(self, pages):
         self.Cards.wait_for_items_load(len(pages))
         compare(
             actual=self.pages,
-            expected=[page_to_ui_dict(page, is_full=is_full) for page in pages],
+            expected=[f'📄 {page.Title.value}' for page in pages],
             target_name='pages list'
         )
 

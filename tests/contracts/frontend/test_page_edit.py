@@ -131,7 +131,6 @@ def test_update_page_request(edit_new_title, wiki_page):
         }),
         expected=wiki.UpdatePageRequest.with_values({
             wiki.UpdatePageRequest.Title.name: title,
-            wiki.UpdatePageRequest.Content.name: wiki_page.Content.value,
         })
     )
 

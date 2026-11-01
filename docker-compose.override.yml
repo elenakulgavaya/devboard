@@ -1,8 +1,4 @@
 services:
-  tasks:
-    environment:
-      - WIKI_SERVICE_URL=http://mockserver:1080/mockserver/wiki
-
   frontend:
     extra_hosts:
       - "host.docker.internal:host-gateway"   # makes host reachable on Linux too

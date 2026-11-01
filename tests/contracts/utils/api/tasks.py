@@ -133,6 +133,7 @@ class GetTasksParams(Dictionary):
     Query = String(name='q', required=False)
     Status = Status(name='status', required=False)
     Overdue = Bool(name='overdue', required=False)
+    WikiPageId = Int(name='wiki_page_id', required=False)
 
 
 class GetTasks(ApiContract):

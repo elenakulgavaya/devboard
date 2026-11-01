@@ -68,9 +68,19 @@ def click_wiki_badge(click_new_task, linked_task, pages):
     wiki.GetPages.reply(body=wiki.GetPagesResponse.with_values({
         wiki.GetPagesResponse.Items.name: [pages[0]]
     }))
+    wiki.GetPageTasks.reply(
+        path_params=wiki.PagePathParams.with_values({
+            wiki.PagePathParams.Id.name: pages[0].Id.value,
+        }),
+        body=wiki.GetPageTasksResponse.with_values({
+            wiki.GetPageTasksResponse.Tasks.name: [linked_task]
+        })
+    )
     TasksPage.TasksList.Cards[0].WikiBadge.click()
     time.sleep(0.5)
 
 
 def test_page_opened(click_wiki_badge, linked_task, pages):
-    WikiPage.PagesList.verify_pages([pages[0]], is_full=True)
+    WikiPage.PagesList.Cards[0].verify_page(
+        pages[0], tasks=[linked_task]
+    )

@@ -32,7 +32,7 @@ def not_matching_task():
 def load_tasks(login, matching_task, not_matching_task):
     tasks.GetTasks.reply(times=2, body=tasks.GetTasksResponse.with_values({
         tasks.GetTasksResponse.Items.name: [matching_task, not_matching_task]
-    }))
+    }), reset=True)
     tasks.GetTasksAssignees.reply()
     TasksPage.open()
 

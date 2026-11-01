@@ -474,6 +474,10 @@ function pageCard(page, editMode = false) {
       ${rendered
         ? `<div class="md-body mt-4">${rendered}</div>`
         : `<p class="text-xs mt-4 italic" style="color:var(--muted);">No content.</p>`}
+      <div class="mt-4 pt-3 border-t" style="border-color:var(--border-soft);">
+        <p class="text-xs font-semibold mb-2" style="color:var(--muted);">&#128203; Linked Tasks</p>
+        <div id="page-tasks-${page.id}"></div>
+      </div>
     </div>
   </div>`;
 }
@@ -486,6 +490,7 @@ function pageEditCard(page) {
       <input class="field" id="ep-title-${page.id}" type="text" value="${escAttr(page.title)}" placeholder="Title *" />
     </div>
     <textarea class="field font-mono resize-none" id="ep-content-${page.id}" rows="10"
+      data-original="${escAttr(page.content || '')}"
       placeholder="Content (markdown supported)">${escHtml(page.content || "")}</textarea>
     <div class="flex gap-2 pt-1">
       <button class="btn-action" onclick="saveEditPage(${page.id})">Save</button>
@@ -502,13 +507,12 @@ async function startEditPage(id) {
 async function saveEditPage(id) {
   const titleEl = document.getElementById(`ep-title-${id}`);
   if (!validateRequired(titleEl, "Title")) return;
-  await apiFetch(`${WIKI_URL}/pages/${id}`, {
-    method: "PATCH",
-    body: {
-      title:   titleEl.value.trim(),
-      content: document.getElementById(`ep-content-${id}`).value || null,
-    },
-  });
+  const contentEl = document.getElementById(`ep-content-${id}`);
+  const contentValue = contentEl.value || null;
+  const originalContent = contentEl.dataset.original || null;
+  const body = { title: titleEl.value.trim() };
+  if (contentValue !== originalContent) body.content = contentValue;
+  await apiFetch(`${WIKI_URL}/pages/${id}`, { method: "PATCH", body });
   loadPages();
 }
 
@@ -525,6 +529,7 @@ function togglePage(id) {
   full.classList.toggle("hidden", !opening);
   if (preview) preview.classList.toggle("hidden", opening);
   icon.innerHTML = opening ? "&#9650;" : "&#9660;";
+  if (opening) loadPageTasks(id);
 }
 
 // ── Wiki — create form ────────────────────────────────────
@@ -552,6 +557,27 @@ async function submitPage() {
 async function deletePage(id) {
   await fetch(`${WIKI_URL}/pages/${id}`, { method: "DELETE", headers: { "X-API-Key": API_KEY } });
   loadPages();
+}
+
+async function loadPageTasks(pageId) {
+  const container = document.getElementById(`page-tasks-${pageId}`);
+  if (!container) return;
+  try {
+    const data = await apiFetch(`${WIKI_URL}/pages/${pageId}/tasks`);
+    if (!data.tasks.length) {
+      container.innerHTML = `<p class="text-xs italic" style="color:var(--muted);">No linked tasks.</p>`;
+      return;
+    }
+    container.innerHTML = data.tasks.map(t => `
+      <div class="flex items-center gap-2 py-1.5 border-b text-xs" style="border-color:var(--border-soft);">
+        <span class="badge-${t.status} px-2 py-0.5 rounded-full">${statusLabel(t.status)}</span>
+        <span class="badge-${t.priority} px-2 py-0.5 rounded-full">${t.priority}</span>
+        <span class="flex-1 font-medium truncate">${escHtml(t.title)}</span>
+        ${t.assignee ? `<span class="badge-assignee px-2 py-0.5 rounded-full">&#128100; ${escHtml(t.assignee)}</span>` : ""}
+      </div>`).join("");
+  } catch (_) {
+    container.innerHTML = `<p class="text-xs italic" style="color:var(--rose);">Failed to load linked tasks.</p>`;
+  }
 }
 
 // ── Helpers ───────────────────────────────────────────────
