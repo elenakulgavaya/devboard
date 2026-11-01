@@ -2,7 +2,7 @@
 Cross-service tests: task ↔ wiki integration.
 """
 from playwright.sync_api import Page, expect
-from tests.helpers import uid, create_task, delete_task, create_wiki_page, delete_wiki_page
+from tests.e2e.helpers import uid, create_task, delete_task, create_wiki_page, delete_wiki_page
 
 
 def go_to_wiki(page: Page) -> None:

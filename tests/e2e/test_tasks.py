@@ -1,5 +1,5 @@
 from playwright.sync_api import Page, expect
-from tests.helpers import uid, create_task, delete_task
+from tests.e2e.helpers import uid, create_task, delete_task
 
 
 # ── Form open / close ─────────────────────────────────────
