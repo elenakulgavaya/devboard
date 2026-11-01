@@ -441,10 +441,26 @@ async function loadPages() {
   const params = new URLSearchParams({ page_size: 100 });
   if (currentSearch.pages) params.set("q", currentSearch.pages);
   const data = await apiFetch(`${WIKI_URL}/pages?${params}`);
+  // Snapshot expanded cards right before re-rendering so we can restore them.
+  const expanded = new Set(
+    [...document.querySelectorAll("[id^='page-full-']")]
+      .filter(el => !el.classList.contains("hidden"))
+      .map(el => el.id.replace("page-full-", ""))
+  );
   window._wikiPages = data.items;
   const list = document.getElementById("pages-list");
   if (!data.items.length) { list.innerHTML = emptyState("No pages found."); return; }
   list.innerHTML = data.items.map(p => pageCard(p)).join("");
+  expanded.forEach(id => {
+    const full    = document.getElementById(`page-full-${id}`);
+    const icon    = document.getElementById(`toggle-icon-${id}`);
+    const preview = document.getElementById(`page-preview-${id}`);
+    if (!full) return;
+    full.classList.remove("hidden");
+    if (preview) preview.classList.add("hidden");
+    if (icon) icon.innerHTML = "&#9650;";
+    loadPageTasks(id);
+  });
 }
 
 function pageCard(page, editMode = false) {
@@ -560,10 +576,12 @@ async function deletePage(id) {
 }
 
 async function loadPageTasks(pageId) {
-  const container = document.getElementById(`page-tasks-${pageId}`);
-  if (!container) return;
   try {
     const data = await apiFetch(`${WIKI_URL}/pages/${pageId}/tasks`);
+    // Re-query after the await: loadPages() may have re-rendered the DOM while
+    // the fetch was in flight, making any earlier reference stale.
+    const container = document.getElementById(`page-tasks-${pageId}`);
+    if (!container) return;
     if (!data.tasks.length) {
       container.innerHTML = `<p class="text-xs italic" style="color:var(--muted);">No linked tasks.</p>`;
       return;
@@ -576,7 +594,8 @@ async function loadPageTasks(pageId) {
         ${t.assignee ? `<span class="badge-assignee px-2 py-0.5 rounded-full">&#128100; ${escHtml(t.assignee)}</span>` : ""}
       </div>`).join("");
   } catch (_) {
-    container.innerHTML = `<p class="text-xs italic" style="color:var(--rose);">Failed to load linked tasks.</p>`;
+    const container = document.getElementById(`page-tasks-${pageId}`);
+    if (container) container.innerHTML = `<p class="text-xs italic" style="color:var(--rose);">Failed to load linked tasks.</p>`;
   }
 }
 
