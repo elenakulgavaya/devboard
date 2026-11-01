@@ -669,10 +669,11 @@ document.addEventListener("DOMContentLoaded", () => {
   if (searchTasks) searchTasks.addEventListener("input", e => onTaskSearch(e.target.value));
   if (searchPages) searchPages.addEventListener("input", e => onPageSearch(e.target.value));
 
-  // Login inputs: submit on Enter
+  // Login inputs: submit on Enter. preventDefault stops Chromium's implicit
+  // form submission on the password field, which would reload the page.
   ["login-user", "login-pass"].forEach(id =>
     document.getElementById(id)?.addEventListener("keydown", e => {
-      if (e.key === "Enter") tryLogin();
+      if (e.key === "Enter") { e.preventDefault(); tryLogin(); }
     }));
 
   if (API_KEY) {
