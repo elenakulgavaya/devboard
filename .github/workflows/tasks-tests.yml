@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    paths: ["services/tasks/**", "tests/contracts/tasks/**", "tests/contracts/utils/**"]
+    paths: ["services/tasks/**", "tests/contracts/tasks/**", "tests/contracts/utils/**", "docker-compose.tasks-test.yml"]
   workflow_dispatch:
 
 jobs:
@@ -15,8 +15,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Start tasks service
-        run: docker compose up tasks -d --build
+      - name: Start test environment
+        run: docker compose -f docker-compose.yml -f docker-compose.tasks-test.yml up tasks mockserver -d --build
+
+      - name: Wait for MockServer
+        run: timeout 60 bash -c 'until curl -sf -X PUT http://localhost:8080/mockserver/status; do sleep 2; done'
 
       - name: Wait for tasks service
         run: timeout 60 bash -c 'until curl -sf http://localhost:8001/health; do sleep 2; done'
@@ -42,7 +45,7 @@ jobs:
 
       - name: Stop services
         if: always()
-        run: docker compose down
+        run: docker compose -f docker-compose.yml -f docker-compose.tasks-test.yml down
 
       - name: Upload test report
         if: always()
