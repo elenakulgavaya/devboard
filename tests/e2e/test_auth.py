@@ -1,6 +1,6 @@
 import pytest
 from playwright.sync_api import Page, expect
-from conftest import BASE_URL, ADMIN_USER, ADMIN_PASS, do_login
+from tests.e2e.conftest import BASE_URL, ADMIN_USER, ADMIN_PASS, do_login
 
 
 def test_login_screen_shown_on_first_visit(page: Page):
