@@ -26,6 +26,8 @@ API_KEY        = os.getenv("API_KEY", "devboard-dev-key")
 WIKI_SERVICE_URL = os.getenv("WIKI_SERVICE_URL", "http://localhost:8002")
 ADMIN_USER     = os.getenv("ADMIN_USER", "admin")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin")
+WIKI_HEADERS = {"X-API-Key": API_KEY}
+WIKI_TIMEOUT = 2.0
 
 
 # ── Auth ──────────────────────────────────────────────────
@@ -227,10 +229,10 @@ app.include_router(router)
 
 def _validate_wiki_page(page_id: int) -> None:
     try:
-        with httpx.Client(timeout=2.0) as client:
+        with httpx.Client(timeout=WIKI_TIMEOUT) as client:
             response = client.get(
                 f"{WIKI_SERVICE_URL}/pages/{page_id}",
-                headers={"X-API-Key": API_KEY},
+                headers=WIKI_HEADERS,
             )
             if response.status_code == 404:
                 raise HTTPException(status_code=422, detail="Wiki page not found")
@@ -244,11 +246,11 @@ def _validate_wiki_page(page_id: int) -> None:
 def _notify_wiki_reindex(task_id: int, description: str | None) -> None:
     """Fire-and-forget call to wiki service. Wiki being down must not fail task updates."""
     try:
-        with httpx.Client(timeout=2.0) as client:
+        with httpx.Client(timeout=WIKI_TIMEOUT) as client:
             client.post(
                 f"{WIKI_SERVICE_URL}/internal/reindex",
                 json={"task_id": task_id, "description": description},
-                headers={"X-API-Key": API_KEY},
+                headers=WIKI_HEADERS,
             )
     except Exception:
         pass
