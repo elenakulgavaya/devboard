@@ -26,8 +26,6 @@ API_KEY        = os.getenv("API_KEY", "devboard-dev-key")
 WIKI_SERVICE_URL = os.getenv("WIKI_SERVICE_URL", "http://localhost:8002")
 ADMIN_USER     = os.getenv("ADMIN_USER", "admin")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin")
-WIKI_HEADERS = {'X-API-Key': API_KEY}
-WIKI_TIMEOUT = 2.0
 
 
 # ── Auth ──────────────────────────────────────────────────
@@ -68,7 +66,7 @@ def list_tasks(
     status: str | None = Query(None),
     priority: str | None = Query(None),
     assignee: str | None = Query(None),
-    page_id: int | None = Query(None),
+    wiki_page_id: int | None = Query(None),
     q: str | None = Query(None),
     overdue: bool = Query(False),
     db: Session = Depends(get_db),
@@ -80,8 +78,8 @@ def list_tasks(
         query = query.filter(models.Task.priority == priority)
     if assignee:
         query = query.filter(models.Task.assignee == assignee)
-    if page_id is not None:
-        query = query.filter(models.Task.wiki_page_id == page_id)
+    if wiki_page_id is not None:
+        query = query.filter(models.Task.wiki_page_id == wiki_page_id)
     if q:
         query = query.filter(
             or_(
@@ -229,10 +227,10 @@ app.include_router(router)
 
 def _validate_wiki_page(page_id: int) -> None:
     try:
-        with httpx.Client(timeout=WIKI_TIMEOUT) as client:
+        with httpx.Client(timeout=2.0) as client:
             response = client.get(
                 f"{WIKI_SERVICE_URL}/pages/{page_id}",
-                headers=WIKI_HEADERS,
+                headers={"X-API-Key": API_KEY},
             )
             if response.status_code == 404:
                 raise HTTPException(status_code=422, detail="Wiki page not found")
@@ -246,11 +244,11 @@ def _validate_wiki_page(page_id: int) -> None:
 def _notify_wiki_reindex(task_id: int, description: str | None) -> None:
     """Fire-and-forget call to wiki service. Wiki being down must not fail task updates."""
     try:
-        with httpx.Client(timeout=WIKI_TIMEOUT) as client:
+        with httpx.Client(timeout=2.0) as client:
             client.post(
                 f"{WIKI_SERVICE_URL}/internal/reindex",
                 json={"task_id": task_id, "description": description},
-                headers=WIKI_HEADERS,
+                headers={"X-API-Key": API_KEY},
             )
     except Exception:
         pass

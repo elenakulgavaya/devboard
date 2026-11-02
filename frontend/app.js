@@ -582,11 +582,11 @@ async function loadPageTasks(pageId) {
     // the fetch was in flight, making any earlier reference stale.
     const container = document.getElementById(`page-tasks-${pageId}`);
     if (!container) return;
-    if (!data.items.length) {
+    if (!data.tasks.length) {
       container.innerHTML = `<p class="text-xs italic" style="color:var(--muted);">No linked tasks.</p>`;
       return;
     }
-    container.innerHTML = data.items.map(t => `
+    container.innerHTML = data.tasks.map(t => `
       <div class="flex items-center gap-2 py-1.5 border-b text-xs" style="border-color:var(--border-soft);">
         <span class="badge-${t.status} px-2 py-0.5 rounded-full">${statusLabel(t.status)}</span>
         <span class="badge-${t.priority} px-2 py-0.5 rounded-full">${t.priority}</span>

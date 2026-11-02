@@ -112,12 +112,12 @@ def get_linked_tasks(page_id: int, db: Session = Depends(get_db)):
     with httpx.Client() as client:
         response = client.get(
             f"{TASKS_SERVICE_URL}/tasks",
-            params={"page_id": page_id, "page_size": 100},
+            params={"wiki_page_id": page_id, "page_size": 100},
             headers={"X-API-Key": API_KEY},
         )
         response.raise_for_status()
 
-    return schemas.LinkedTasksResponse(page_id=page_id, items=response.json().get("items", []))
+    return schemas.LinkedTasksResponse(page_id=page_id, tasks=response.json().get("items", []))
 
 
 # ── Internal endpoints (service-to-service) ───────────────
