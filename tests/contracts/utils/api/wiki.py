@@ -58,7 +58,7 @@ class UpdatePageResponse(Page):
 
 class GetPageTasksResponse(Dictionary):
     PageId = Int(name='page_id')
-    Tasks = Array(tasks.Task, name='tasks')
+    Tasks = Array(tasks.Task, name='items')
 
 
 class ErrorResponse(Dictionary):
