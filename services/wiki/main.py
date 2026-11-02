@@ -112,7 +112,7 @@ def get_linked_tasks(page_id: int, db: Session = Depends(get_db)):
     with httpx.Client() as client:
         response = client.get(
             f"{TASKS_SERVICE_URL}/tasks",
-            params={"wiki_page_id": page_id, "page_size": 100},
+            params={"page_id": page_id, "page_size": 100},
             headers={"X-API-Key": API_KEY},
         )
         response.raise_for_status()
