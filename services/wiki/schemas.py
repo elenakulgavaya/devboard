@@ -34,7 +34,7 @@ class PageListResponse(BaseModel):
 
 class LinkedTasksResponse(BaseModel):
     page_id: int
-    tasks: list[dict]
+    items: list[dict]
 
 
 class TaskIndexUpdate(BaseModel):
