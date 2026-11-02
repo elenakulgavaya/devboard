@@ -66,7 +66,7 @@ def list_tasks(
     status: str | None = Query(None),
     priority: str | None = Query(None),
     assignee: str | None = Query(None),
-    wiki_page_id: int | None = Query(None),
+    page_id: int | None = Query(None),
     q: str | None = Query(None),
     overdue: bool = Query(False),
     db: Session = Depends(get_db),
@@ -78,8 +78,8 @@ def list_tasks(
         query = query.filter(models.Task.priority == priority)
     if assignee:
         query = query.filter(models.Task.assignee == assignee)
-    if wiki_page_id is not None:
-        query = query.filter(models.Task.wiki_page_id == wiki_page_id)
+    if page_id is not None:
+        query = query.filter(models.Task.wiki_page_id == page_id)
     if q:
         query = query.filter(
             or_(
