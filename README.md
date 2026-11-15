@@ -2,6 +2,14 @@
 
 A micro team productivity hub — minimal task tracker + wiki. Built as a demo application for the [surety](https://surety.readthedocs.io/en/latest/) testing framework article series on [qaexplained.com](https://qaexplained.com).
 
+## 🎤 As seen at CLC 2026
+
+devboard is the demo app from the talk **"Your Pipeline Is Ready. Your Tests Are Not."** by Elena Kulgavaya (CLC 2026, Mannheim, 12 November 2026). The demo makes the same three changes twice: once with end-to-end tests after merge, and once with contract tests on every pull request.
+
+- 📑 [Slides and talk summary](docs/talks/clc-2026/)
+- ▶️ [The demo: end-to-end vs. contract tests](https://youtu.be/c41kOBuAqtA)
+- ▶️ [The devboard app in one minute](https://youtu.be/7SOhgkAlFA0)
+
 ## Architecture
 
 ```
